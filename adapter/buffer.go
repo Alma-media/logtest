@@ -1,6 +1,11 @@
 package adapter
 
-import "io"
+import (
+	"bytes"
+	"io"
+)
+
+var defaultPool NoPool
 
 // Buffer is a write buffer. It keeps the order of messages.
 // TODO:
@@ -10,41 +15,54 @@ import "io"
 // ISSUES:
 // - we cannot use []byte since all the messages are protobuf encoded
 // so it cannot be a sustained stream
-type Buffer [][]byte
+type Buffer struct {
+	pool BufferPool
+	buff []*bytes.Buffer
+}
 
 // NewBuffer creates a buffer with provided capacity.
 func NewBuffer(capacity int) *Buffer {
-	buff := make(Buffer, 0, capacity)
-
-	return &buff
+	return &Buffer{
+		pool: defaultPool,
+		buff: make([]*bytes.Buffer, 0, capacity),
+	}
 }
 
 // Append new element to the buffer (chainable).
-// TODO: use bytearray pool
 func (buff *Buffer) Append(p []byte) *Buffer {
-	if len(*buff) < cap(*buff) {
-		*buff = append(*buff, p)
+	if len(buff.buff) < cap(buff.buff) {
+		b := buff.pool.Get()
+
+		b.Write(p)
+
+		buff.buff = append(buff.buff, b)
 
 		return buff
 	}
 
-	if cap(*buff) > 0 {
-		*buff = append((*buff)[1:], p)
+	if len(buff.buff) > 0 {
+		buff.pool.Put(buff.buff[0])
+
+		b := buff.pool.Get()
+
+		b.Write(p)
+
+		buff.buff = append(buff.buff[1:], b)
 	}
 
 	return buff
 }
 
 // Len returns buffer length (number of lines).
-func (buff Buffer) Len() int { return len(buff) }
+func (buff Buffer) Len() int { return len(buff.buff) }
 
 // String representation of a buffer (for testing / debugging purposes only).
 // NOTE: this is not the most efficient way to build a string so never use it in production.
 func (buff Buffer) String() string {
 	var output []byte
 
-	for _, line := range buff {
-		output = append(output, line...)
+	for _, b := range buff.buff {
+		output = append(output, b.Bytes()...)
 	}
 
 	return string(output)
@@ -54,13 +72,17 @@ func (buff Buffer) String() string {
 func (buff *Buffer) Flush(w io.Writer) (written int, err error) {
 	var index int
 
-	defer func() { *buff = (*buff)[index:] }()
+	defer func() { buff.buff = buff.buff[index:] }()
 
-	for ; index < len(*buff); index++ {
-		n, err := w.Write((*buff)[index])
+	for ; index < len(buff.buff); index++ {
+		b := buff.buff[index]
+
+		n, err := w.Write(b.Bytes())
 		if err != nil {
 			return written, err
 		}
+
+		buff.pool.Put(b)
 
 		written += n
 	}

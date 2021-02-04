@@ -16,10 +16,10 @@ type BufferPool interface {
 type NoPool struct{}
 
 // Put does nothing (required to implement BufferPool).
-func (p *NoPool) Put(buf *bytes.Buffer) {}
+func (p NoPool) Put(buf *bytes.Buffer) {}
 
 // Get returns a new *bytes.Buffer every time it is called.
-func (p *NoPool) Get() *bytes.Buffer { return new(bytes.Buffer) }
+func (p NoPool) Get() *bytes.Buffer { return new(bytes.Buffer) }
 
 // SyncPool reduces memory allocations reusing existing byte buffers for log entries.
 type SyncPool struct{ pool *sync.Pool }

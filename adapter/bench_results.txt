@@ -1,0 +1,5 @@
+[][]byte
+
+Benchmark_Buffer-12    	 1000000	      1744 ns/op	    1365 B/op	       9 allocs/op
+PASS
+ok  	github.com/jexia-com/logtest/adapter	1.791s

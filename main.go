@@ -10,7 +10,7 @@ import (
 
 func main() {
 	var (
-		buffer   = adapter.NewBuffer(0)
+		buffer   = adapter.NewBuffer(100)
 		writer   bytes.Buffer
 		failing  = adapter.NewFailingWriter(&writer, 0)
 		buffered = adapter.NewBufferingWriter(failing, buffer)
@@ -28,7 +28,7 @@ func main() {
 		}
 	)
 
-	// defer buffer.Flush(os.Stdout)
+	defer buffer.Flush(os.Stdout)
 
 	logger.Debug("DEBUG message")
 	logger.Info("INFO message")
