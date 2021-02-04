@@ -5,15 +5,28 @@ import (
 	"sync"
 )
 
+// BufferPool describes the pull of buffers.
 type BufferPool interface {
 	Put(*bytes.Buffer)
 	Get() *bytes.Buffer
 }
 
-type DefaultPool struct{ pool *sync.Pool }
+// NoPool implements BufferPool interface but does not provide any optimization.
+// It returns new bytes.Buffer every time it is requested by `Get()`.
+type NoPool struct{}
 
-func NewBufferPool() *DefaultPool {
-	return &DefaultPool{
+// Put does nothing (required to implement BufferPool).
+func (p *NoPool) Put(buf *bytes.Buffer) {}
+
+// Get returns a new *bytes.Buffer every time it is called.
+func (p *NoPool) Get() *bytes.Buffer { return new(bytes.Buffer) }
+
+// SyncPool reduces memory allocations reusing existing byte buffers for log entries.
+type SyncPool struct{ pool *sync.Pool }
+
+// NewSyncPool creates new empty SyncPool.
+func NewSyncPool() *SyncPool {
+	return &SyncPool{
 		pool: &sync.Pool{
 			New: func() interface{} {
 				return new(bytes.Buffer)
@@ -22,6 +35,8 @@ func NewBufferPool() *DefaultPool {
 	}
 }
 
-func (p *DefaultPool) Put(buf *bytes.Buffer) { buf.Reset(); p.pool.Put(buf) }
+// Put a buffer back to the pool.
+func (p *SyncPool) Put(buf *bytes.Buffer) { buf.Reset(); p.pool.Put(buf) }
 
-func (p *DefaultPool) Get() *bytes.Buffer { return p.pool.Get().(*bytes.Buffer) }
+// Get a buffer from the pool.
+func (p *SyncPool) Get() *bytes.Buffer { return p.pool.Get().(*bytes.Buffer) }
