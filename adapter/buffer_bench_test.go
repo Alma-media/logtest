@@ -1,14 +1,13 @@
 package adapter
 
 import (
-	"io/ioutil"
 	"testing"
 )
 
 func Benchmark_Buffer(b *testing.B) {
 	var (
-		input  = []string{"foo\n", "bar\n", "baz\n", "man\n", "wow\n", "len\n", "boo\n", "lol", "cap\n"}
-		length = int(len(input) / 2)
+		input  = []string{"foo\n", "bar\n", "baz\n", "man\n", "wow\n", "len\n", "boo\n", "lol\n", "cap\n"}
+		length = int(len(input))
 		buff   = NewBuffer(length)
 	)
 
@@ -19,6 +18,10 @@ func Benchmark_Buffer(b *testing.B) {
 			buff.Append([]byte(entry))
 		}
 
-		buff.Flush(ioutil.Discard)
+		// buff.Flush(ioutil.Discard)
+
+		// log.Println("-----------------------------")
+		// buff.Flush(os.Stdout)
+
 	}
 }

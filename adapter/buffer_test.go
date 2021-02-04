@@ -49,9 +49,7 @@ func Test_Buffer_Flush(t *testing.T) {
 		}
 
 		Convey("check if buffer is empty when successfully flushed", func() {
-			var (
-				output = strings.Join(input, "")
-			)
+			output := strings.Join(input, "")
 
 			n, err := buff.Flush(&writer)
 			if err != nil {

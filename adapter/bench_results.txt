@@ -1,5 +1,15 @@
-[][]byte
+NoPool: [][]byte
+Benchmark_Buffer-12    	 1000000	      1396 ns/op	    1152 B/op	      20 allocs/op
 
+SyncPool: [][]byte
 Benchmark_Buffer-12    	 1000000	      1744 ns/op	    1365 B/op	       9 allocs/op
-PASS
-ok  	github.com/jexia-com/logtest/adapter	1.791s
+
+SyncPool: slice len(buffer) = 2
+Benchmark_Buffer-12    	 1870356	       640 ns/op	     144 B/op	       2 allocs/op
+
+NoPool: linked list capacity = 2
+Benchmark_Buffer-12    	  941462	      1548 ns/op	    1440 B/op	      27 allocs/op
+
+SyncPool: linked list capacity = 2
+Benchmark_Buffer-12    	 1643166	       910 ns/op	     432 B/op	       9 allocs/op
+
