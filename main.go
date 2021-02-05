@@ -28,6 +28,9 @@ func main() {
 		}
 	)
 
+	// NOTE: both must be set:
+	// - logger.ExitFunc to flush the buffer on fatal error
+	// - defer - to flush the buffer if main function exited
 	defer buffer.Flush(os.Stdout)
 
 	logger.Debug("DEBUG message")
